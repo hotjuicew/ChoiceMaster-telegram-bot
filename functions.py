@@ -64,6 +64,10 @@ class ChooseHandler:
             self.bot.register_next_step_handler(message, self.get_option_count)
 
     def save_option_input(self, message):
+        if message.text.startswith('/'):
+            # 用户输入了其他命令，停止执行当前代码
+            return
+
         try:
             option_num = self.options['current_option']
             self.options['choices'][option_num] = message.text

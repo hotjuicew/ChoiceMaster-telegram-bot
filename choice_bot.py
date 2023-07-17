@@ -4,7 +4,7 @@
 # It echoes any incoming text messages.
 import random
 import telebot
-from data import data, activities, replies
+from data import data, activities, replies, mindfulness
 from functions import RandomHandler, ChooseHandler
 
 
@@ -17,7 +17,7 @@ class ChoiceBot:
 
         @self.bot.message_handler(commands=['help', 'start'])
         def send_welcome(message):
-            self.bot.reply_to(message.chat.id, data['start_message'])
+            self.bot.send_message(message.chat.id, data['start_message'])
 
         @self.bot.message_handler(commands=['yesorno'])
         def yes_or_no(message):
@@ -32,6 +32,11 @@ class ChoiceBot:
         def dosth(message):
             activity = random.choice(activities)
             self.bot.send_message(message.chat.id, activity)
+
+        @self.bot.message_handler(commands=['mindfulness'])
+        def mind(message):
+            mindfulness_chose = random.choice(mindfulness)
+            self.bot.send_message(message.chat.id, mindfulness_chose)
 
         @self.bot.message_handler(commands=['choose'])
         def choose(message):
