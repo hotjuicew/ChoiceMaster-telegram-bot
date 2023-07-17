@@ -18,13 +18,6 @@ class ChoiceBot:
         def send_welcome(message):
             self.bot.reply_to(message.chat.id, data['start_message'])
 
-        @self.bot.message_handler(func=lambda message: True)
-        def random_reply(message):
-
-            reply = random.choice(replies)
-
-            self.bot.reply_to(message, reply)
-
         @self.bot.message_handler(commands=['yesorno'])
         def yes_or_no(message):
             choice = random.choice(data["YES_NO"])
@@ -55,6 +48,12 @@ class ChoiceBot:
             random.shuffle(options)
             choice = options[0]
             self.bot.send_message(message.chat.id, f"我的选择是{choice}")
+
+        @self.bot.message_handler(content_types=['text'])
+        def handle_text(message):
+            if not message.text.startswith('/'):
+                reply = random.choice(replies)
+                self.bot.send_message(message.chat.id, reply)
 
     def start(self):
         self.bot.infinity_polling()
