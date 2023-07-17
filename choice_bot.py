@@ -34,13 +34,51 @@ class ChoiceBot:
             self.bot.send_message(message.chat.id, activity)
 
         @self.bot.message_handler(commands=['choose'])
-        def choose(message):
-            options = message.text.split()[1:]
-            if len(options) < 2:
-                self.bot.reply_to(message, "至少2个选项,选项之间用空格隔开哦^o^")
-                return
-            random.shuffle(options)
-            choice = options[0]
+        def get_option_count(message):
+            self.bot.send_message(message.chat.id, "请输入选项个数:")
+            self.bot.register_next_step_handler(message, get_option_inputs)
+
+        def get_option_inputs(message):
+            try:
+                num = int(message.text)
+                if num < 2:
+                    self.bot.send_message(message.chat.id, "至少2个选项，请重新输入选项个数:")
+                    self.bot.register_next_step_handler(message, get_option_inputs)
+                    return
+
+                options = {}
+                options['num'] = num
+                options['current_option'] = 1
+                options['choices'] = {}
+
+                self.bot.send_message(message.chat.id, f"请输入选项{options['current_option']}:")
+                self.bot.register_next_step_handler(message, lambda msg: save_option_input(msg, options))
+
+            except ValueError:
+                self.bot.send_message(message.chat.id, "无效的选项个数，请输入一个整数")
+                self.bot.send_message(message.chat.id, "请输入选项个数:")
+                self.bot.register_next_step_handler(message, get_option_count)
+
+        def save_option_input(message, options):
+            try:
+                option_num = options['current_option']
+                options['choices'][option_num] = message.text
+
+                if option_num < options['num']:
+                    options['current_option'] += 1
+                    self.bot.send_message(message.chat.id, f"请输入选项{options['current_option']}:")
+                    self.bot.register_next_step_handler(message, lambda msg: save_option_input(msg, options))
+                else:
+                    choose_option(options, message)
+
+            except ValueError:
+                self.bot.send_message(message.chat.id, "无效的选项，请重新输入选项:")
+                self.bot.register_next_step_handler(message, lambda msg: save_option_input(msg, options))
+
+        def choose_option(options, message):
+            option_values = list(options['choices'].values())
+            random.shuffle(option_values)
+            choice = random.choice(option_values)
             self.bot.send_message(message.chat.id, f"我的选择是{choice}")
 
         @self.bot.message_handler(content_types=['text'])
