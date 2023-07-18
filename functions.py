@@ -21,9 +21,8 @@ class RandomHandler:
             self.bot.register_next_step_handler(message, lambda msg: self.generate_random_number(msg, start_number))
 
         except ValueError:
-            self.bot.send_message(message.chat.id, "无效的起始数，请输入一个整数:")
-            self.bot.send_message(message.chat.id, "请输入起始数:")
-            self.bot.register_next_step_handler(message, self.get_start_number)
+            self.bot.send_message(message.chat.id, "无效的起始数，请输入一个整数。")
+            self.get_start_number(message)
 
     def generate_random_number(self, message, start_number):
         try:
