@@ -1,5 +1,9 @@
 import random
 
+from data import replies, sleeps, activities_short_term
+import datetime
+import pytz
+
 
 class RandomHandler:
     def __init__(self, bot):
@@ -88,3 +92,26 @@ class ChooseHandler:
         random.shuffle(option_values)
         choice = random.choice(option_values)
         self.bot.send_message(message.chat.id, f"我的选择是{choice}")
+
+
+def handle_text(message, bot):
+    if not message.text.startswith('/'):
+        if is_within_time_range():
+            sleep = random.choice(sleeps)
+            bot.send_message(message.chat.id, sleep)
+        else:
+            reply = random.choice(replies)
+            bot.send_message(message.chat.id, reply)
+
+
+def is_within_time_range():
+    local_time = datetime.datetime.now()
+    local_tz = pytz.timezone('Asia/Shanghai')  # 设置本地时区
+    beijing_time = local_time.astimezone(local_tz)
+    hour = beijing_time.hour
+    return hour >= 22 or hour < 5
+
+
+def dosth(message, bot):
+    activity = random.choice(activities_short_term)
+    bot.send_message(message.chat.id, activity)
