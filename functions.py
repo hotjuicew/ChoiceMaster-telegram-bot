@@ -1,6 +1,6 @@
 import random
 
-from data import replies, sleeps, activities_short_term
+from data import replies, sleeps, activities_short_term, activities_long_term
 import datetime
 import pytz
 
@@ -21,7 +21,7 @@ class RandomHandler:
             self.bot.register_next_step_handler(message, lambda msg: self.generate_random_number(msg, start_number))
 
         except ValueError:
-            self.bot.send_message(message.chat.id, "无效的起始数，请输入一个整数")
+            self.bot.send_message(message.chat.id, "无效的起始数，请输入一个整数:")
             self.bot.send_message(message.chat.id, "请输入起始数:")
             self.bot.register_next_step_handler(message, self.get_start_number)
 
@@ -30,7 +30,7 @@ class RandomHandler:
             end_number = int(message.text)
 
             number = random.randint(min(start_number, end_number), max(start_number, end_number))
-            self.bot.send_message(message.chat.id, f"我的选择是{number}")
+            self.bot.send_message(message.chat.id, f"我的选择是【 {number} 】✨")
 
         except ValueError:
             self.bot.send_message(message.chat.id, "无效的终止数，请输入一个整数")
@@ -91,7 +91,7 @@ class ChooseHandler:
         option_values = list(self.options['choices'].values())
         random.shuffle(option_values)
         choice = random.choice(option_values)
-        self.bot.send_message(message.chat.id, f"我的选择是{choice}")
+        self.bot.send_message(message.chat.id, f"我的选择是【 {choice} 】✨")
 
 
 def handle_text(message, bot):
@@ -112,6 +112,22 @@ def is_within_time_range():
     return hour >= 22 or hour < 5
 
 
-def dosth(message, bot):
+def get_options_keyboard(types):
+    keyboard = types.InlineKeyboardMarkup()
+
+    short_time_btn = types.InlineKeyboardButton(text='短时间', callback_data='short')
+    long_time_btn = types.InlineKeyboardButton(text='长时间', callback_data='long')
+
+    keyboard.add(short_time_btn, long_time_btn)
+
+    return keyboard
+
+
+def short_term(message, self):
     activity = random.choice(activities_short_term)
-    bot.send_message(message.chat.id, activity)
+    self.bot.send_message(message.chat.id, activity)
+
+
+def long_term(message, self):
+    activity = random.choice(activities_long_term)
+    self.bot.send_message(message.chat.id, activity)
