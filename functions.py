@@ -1,6 +1,8 @@
 import random
+import re
 
-from data import replies, sleeps, activities_short_term, activities_long_term
+from data import replies, sleeps, activities_short_term, activities_long_term, greetings, sad, angry, anxious, lonely, \
+    disappointed
 import datetime
 import pytz
 
@@ -94,13 +96,39 @@ class ChooseHandler:
 
 
 def handle_text(message, bot):
+    pattern_greet = re.compile(r"hello|hi|你好|hey|你是")
+    pattern_sad = re.compile(r"😭|伤心|难受|难过|😮‍💨|哎|唉|难受|死|失望|悲伤|沮丧|痛苦|心碎|郁闷|💔|😤|心碎|痛苦|伤心|失恋|痛心|失望|悲伤")
+    pattern_angry = re.compile(r"😡|生气|愤怒|气愤|怒火|发火|火大|气死|吵架")
+    pattern_anxious = re.compile(r"😰|焦虑|紧张|担心|忧虑|不安|烦躁|害怕|😫|压力|累|疲|倦|疲劳|憔悴|心力交瘁|😟|困扰")
+    pattern_lonely = re.compile(r"😔|孤单|寂寞|无聊|孤独|空虚|陪")
+    pattern_disappointed = re.compile(r"失望|沮丧|郁闷|可惜|😤|挫折|失意|无奈|无力|懊悔|泄气")
     if not message.text.startswith('/'):
-        if is_within_time_range():
+        if pattern_greet.search(message.text):
+            greeting = random.choice(greetings)
+            bot.send_message(message.chat.id, greeting)
+        elif is_within_time_range():
             sleep = random.choice(sleeps)
             bot.send_message(message.chat.id, sleep)
-        else:
+        elif pattern_sad.search(message.text):
+            sad_random = random.choice(sad)
+            bot.send_message(message.chat.id, sad_random)
+        elif pattern_angry.search(message.text):
+            angry_random = random.choice(angry)
+            bot.send_message(message.chat.id, angry_random)
+        elif pattern_anxious.search(message.text):
+            anxious_random = random.choice(anxious)
+            bot.send_message(message.chat.id, anxious_random)
+        elif pattern_lonely.search(message.text):
+            lonely_random = random.choice(lonely)
+            bot.send_message(message.chat.id, lonely_random)
+        elif pattern_disappointed.search(message.text):
+            disappointed_random = random.choice(disappointed)
+            bot.send_message(message.chat.id, disappointed_random)
+        elif message.text.endswith('？') | message.text.endswith('?'):
             reply = random.choice(replies)
             bot.send_message(message.chat.id, reply)
+        else:
+            pass
 
 
 def is_within_time_range():
