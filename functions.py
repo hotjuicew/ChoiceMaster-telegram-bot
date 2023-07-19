@@ -2,7 +2,7 @@ import random
 import re
 
 from data import replies, sleeps, activities_short_term, activities_long_term, greetings, sad, angry, anxious, lonely, \
-    disappointed
+    disappointed, activities_sleep
 import datetime
 import pytz
 
@@ -136,7 +136,7 @@ def is_within_time_range():
     local_tz = pytz.timezone('Asia/Shanghai')  # 设置本地时区
     beijing_time = local_time.astimezone(local_tz)
     hour = beijing_time.hour
-    return hour >= 22 or hour < 5
+    return hour >= 23 or hour < 5
 
 
 def get_options_keyboard(types):
@@ -158,3 +158,8 @@ def short_term(message, self):
 def long_term(message, self):
     activity = random.choice(activities_long_term)
     self.bot.send_message(message.chat.id, activity)
+
+
+def sleep_activity(message, bot):
+    activity = random.choice(activities_sleep)
+    bot.send_message(message.chat.id, activity)
