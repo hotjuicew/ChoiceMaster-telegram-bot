@@ -62,4 +62,5 @@ class ChoiceBot:
             handle_text(message, self.bot)
 
     def start(self):
+        print("bot is starting")
         self.bot.infinity_polling()
