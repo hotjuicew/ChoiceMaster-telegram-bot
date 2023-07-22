@@ -14,6 +14,5 @@ COPY . .
 
 # 设置环境变量
 ENV API_TOKEN "<your_token>"
-ENV HTTP_PROXY "<your_http_proxy>(option)"
 # 容器启动时运行的命令
 CMD [ "python", "main.py" ]
