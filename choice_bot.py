@@ -6,7 +6,7 @@ import telebot
 from telebot import types
 from data import data, mindfulness
 from functions import RandomHandler, ChooseHandler, handle_text, short_term, long_term, get_options_keyboard, \
-    is_within_time_range, sleep_activity
+    is_within_time_range, sleep_activity, get_track_keyboard, init_goal, update_goal, delete_goal
 
 
 class ChoiceBot:
@@ -14,8 +14,6 @@ class ChoiceBot:
         self.bot = telebot.TeleBot(api_token)
         self.bot.delete_webhook()
         self.user_context = {}  # 用于存储用户的上下文数据
-        keyboard = types.ReplyKeyboardMarkup(one_time_keyboard=True)
-        keyboard.add('短时间', '长时间')
 
         @self.bot.message_handler(commands=['help', 'start'])
         def send_welcome(message):
@@ -46,6 +44,8 @@ class ChoiceBot:
                 short_term(call.message, self)
             elif call.data == 'long':
                 long_term(call.message, self)
+            elif call.data == 'close':
+                self.bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
 
         @self.bot.message_handler(commands=['mindfulness'])
         def mind(message):
@@ -56,6 +56,20 @@ class ChoiceBot:
         def choose(message):
             choose_handler = ChooseHandler(self.bot)
             choose_handler.get_option_count(message)
+
+        @self.bot.message_handler(commands=['trackgoal'])
+        def track(message):
+            keyboard = get_track_keyboard(types)
+            self.bot.send_message(message.chat.id, "当前进行的目标：\nlist", reply_markup=keyboard)
+
+        @self.bot.callback_query_handler(func=lambda call: True)
+        def callback_query(call):
+            if call.data == 'init':
+                init_goal(call.message, self)
+            elif call.data == 'update':
+                update_goal(call.message, self)
+            elif call.data == 'close':
+                self.bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
 
         @self.bot.message_handler(content_types=['text'])
         def handle_message(message):

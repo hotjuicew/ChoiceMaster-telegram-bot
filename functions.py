@@ -144,8 +144,23 @@ def get_options_keyboard(types):
 
     short_time_btn = types.InlineKeyboardButton(text='短时间', callback_data='short')
     long_time_btn = types.InlineKeyboardButton(text='长时间', callback_data='long')
+    close_btn = types.InlineKeyboardButton(text='关闭', callback_data='close')
 
     keyboard.add(short_time_btn, long_time_btn)
+    keyboard.add(close_btn)
+
+    return keyboard
+
+
+def get_track_keyboard(types):
+    keyboard = types.InlineKeyboardMarkup()
+
+    init_btn = types.InlineKeyboardButton(text='设定目标', callback_data='init')
+    update_btn = types.InlineKeyboardButton(text='更新进度', callback_data='update')
+    delete_btn = types.InlineKeyboardButton(text='删除目标', callback_data='delete')
+    close_btn = types.InlineKeyboardButton(text='关闭', callback_data='close')
+    keyboard.add(init_btn, update_btn, delete_btn, )
+    keyboard.add(close_btn)
 
     return keyboard
 
@@ -158,6 +173,19 @@ def short_term(message, self):
 def long_term(message, self):
     activity = random.choice(activities_long_term)
     self.bot.send_message(message.chat.id, activity)
+
+
+def init_goal(message, self):
+    self.bot.send_message(message.chat.id, "init_goal")
+
+
+def update_goal(message, self):
+    self.bot.send_message(message.chat.id, "update_goal")
+
+
+# 该逻辑放到具体的目标中去实现
+def delete_goal(message, self):
+    self.bot.send_message(message.chat.id, "delete_goal")
 
 
 def sleep_activity(message, bot):
