@@ -5,8 +5,9 @@ import random
 import telebot
 from telebot import types
 from data import data, mindfulness
-from functions import RandomHandler, ChooseHandler, handle_text, short_term, long_term, get_options_keyboard, \
-    is_within_time_range, sleep_activity, get_track_keyboard, init_goal, update_goal, delete_goal, get_goal_list
+from functions import RandomHandler, ChooseHandler, GoalHandler, handle_text, short_term, long_term, \
+    get_options_keyboard, \
+    is_within_time_range, sleep_activity, get_track_keyboard
 
 
 class ChoiceBot:
@@ -38,15 +39,6 @@ class ChoiceBot:
                 self.bot.send_message(message.chat.id, '- 如果你不知道未来15分钟内的时间要干什么，请选择“短时间”.\n- 如果你有一天或半天的空闲时间，请选择“长时间”',
                                       reply_markup=keyboard)
 
-        @self.bot.callback_query_handler(func=lambda call: True)
-        def callback_query(call):
-            if call.data == 'short':
-                short_term(call.message, self)
-            elif call.data == 'long':
-                long_term(call.message, self)
-            elif call.data == 'close':
-                self.bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
-
         @self.bot.message_handler(commands=['mindfulness'])
         def mind(message):
             mindfulness_chose = random.choice(mindfulness)
@@ -60,15 +52,20 @@ class ChoiceBot:
         @self.bot.message_handler(commands=['trackgoal'])
         def track(message):
             keyboard = get_track_keyboard(types)
-            get_goal_list(message, self, keyboard)
+            goal_handler = GoalHandler(self.bot)
+            goal_handler.get_goal_list(message, keyboard)
 
         @self.bot.callback_query_handler(func=lambda call: True)
         def callback_query(call):
-            print("call", call)
-            if call.data == 'init':
-                init_goal(call.message, self)
+            goal_handler = GoalHandler(self.bot)
+            if call.data == 'short':
+                short_term(call.message, self)
+            elif call.data == 'long':
+                long_term(call.message, self)
+            elif call.data == 'init':
+                goal_handler.init_goal(call.message)
             elif call.data == 'update':
-                update_goal(call.message, self)
+                goal_handler.update_goal(call.message)
             elif call.data == 'close':
                 self.bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
 

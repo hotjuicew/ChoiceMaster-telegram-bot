@@ -1,6 +1,7 @@
 import random
 import re
-
+from telebot import types
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 from data import replies, sleeps, activities_short_term, activities_long_term, greetings, sad, angry, anxious, lonely, \
     disappointed, activities_sleep
 import datetime
@@ -97,6 +98,77 @@ class ChooseHandler:
         self.bot.send_message(message.chat.id, f"我的选择是【 {choice} 】✨")
 
 
+class GoalHandler:
+    def __init__(self, bot):
+        self.bot = bot
+        self.options = {}
+
+    def get_format_list(self, message):
+        user_goals = get_goals_db(message.from_user.id)
+        goal_list_text = ""
+        for goal, total_progress, current_progress in user_goals:
+            completion_percentage = current_progress / total_progress * 100
+            goal_list_text += f"目标: {goal}, 总目标数: {total_progress}, 已达目标数: {current_progress}, 完成百分比: {completion_percentage:.2f}%\n"
+        return goal_list_text
+
+    def get_goal_list(self, message, keyboard):
+        user_goals = get_goals_db(message.from_user.id)
+        print("message.from_user.id", message.from_user.id)
+        if not user_goals:
+            self.bot.send_message(message.chat.id, "你还没有制定目标哦~", reply_markup=keyboard)
+            return
+        else:
+            list_text = self.get_format_list(message)
+            self.bot.send_message(message.chat.id, list_text,
+                                  reply_markup=keyboard)
+
+    def init_goal(self, message):
+        # 提示用户输入目标名称
+        self.bot.send_message(message.chat.id, "请输入目标名称，例如：坚持背单词60天")
+
+        # 等待用户回复，获取目标名称
+        self.bot.register_next_step_handler(message, self.set_goal_name)
+
+    def set_goal_name(self, message):
+        goal_name = message.text
+
+        # 提示用户输入目标总量
+        self.bot.send_message(message.chat.id, "请输入目标总量，例如：60")
+
+        # 等待用户回复，获取目标总量
+        self.bot.register_next_step_handler(message, self.set_goal_total_progress, goal_name)
+
+    def set_goal_total_progress(self, message, goal_name):
+        try:
+            total_progress = int(message.text)
+
+            # 将目标信息写入数据库
+            init_goal_db(message.from_user.id, goal_name, total_progress)
+            print("message.from_user.id2", message.from_user.id)
+            # 发送成功消息给用户
+            goal_list_text = self.get_format_list(message)
+            self.bot.send_message(message.chat.id, "目标设置成功！\n" + goal_list_text,
+                                  )
+        except ValueError:
+            # 用户输入的不是一个合法的数字
+            self.bot.send_message(message.chat.id, "目标总量必须是一个数字，请重新设置目标。")
+
+    def update_goal(self, message):
+        self.bot.send_message(message.chat.id, "update_goal")
+        # 定义两个按钮
+        options = ['选项1', '选项2']
+
+        # 创建键盘
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        keyboard.add(*options)
+
+        # 发送带有键盘的消息
+        self.bot.send_message(message.chat.id, '请选择:', reply_markup=keyboard)
+
+    def delete_goal(self, message):
+        self.bot.send_message(message.chat.id, "delete_goal")
+
+
 def handle_text(message, bot):
     pattern_greet = re.compile(r"hello|hi|你好|hey|你是")
     pattern_sad = re.compile(r"😭|伤心|难受|难过|😮‍💨|哎|唉|难受|死|失望|悲伤|沮丧|痛苦|心碎|郁闷|💔|😤|心碎|痛苦|伤心|失恋|痛心|失望|悲伤")
@@ -104,6 +176,7 @@ def handle_text(message, bot):
     pattern_anxious = re.compile(r"😰|焦虑|紧张|担心|忧虑|不安|烦躁|害怕|😫|压力|累|疲|倦|疲劳|憔悴|心力交瘁|😟|困扰")
     pattern_lonely = re.compile(r"😔|孤单|寂寞|无聊|孤独|空虚|陪")
     pattern_disappointed = re.compile(r"失望|沮丧|郁闷|可惜|😤|挫折|失意|无奈|无力|懊悔|泄气")
+    
     if not message.text.startswith('/'):
         if pattern_greet.search(message.text):
             greeting = random.choice(greetings)
@@ -175,60 +248,6 @@ def short_term(message, self):
 def long_term(message, self):
     activity = random.choice(activities_long_term)
     self.bot.send_message(message.chat.id, activity)
-
-
-def get_goal_list(message, self, keyboard):
-    user_goals = get_goals_db(message.from_user.id)
-    if not user_goals:
-        self.bot.send_message(message.chat.id, "你还没有制定目标哦~", reply_markup=keyboard)
-        return
-    else:
-        for goal, total_progress, current_progress in user_goals:
-            self.bot.send_message(message.chat.id,
-                                  f"目标< {goal}, 总目标数: {total_progress}, 已达目标数: {current_progress},完成百分比:{int(current_progress / total_progress * 100)}%",
-                                  reply_markup=keyboard)
-
-
-def init_goal(message, self):
-    print("init_goal")
-    # 提示用户输入目标名称
-    self.bot.send_message(message.chat.id, "请输入目标名称，例如：坚持背单词60天")
-
-    # 等待用户回复，获取目标名称
-    self.bot.register_next_step_handler(message, get_goal_name, message.from_user.id)
-
-
-def get_goal_name(message, self):
-    goal_name = message.text
-
-    # 提示用户输入目标总量
-    self.bot.send_message(message.chat.id, "请输入目标总量，例如：60")
-
-    # 等待用户回复，获取目标总量
-    self.bot.register_next_step_handler(message, get_goal_total_progress, message.chat.id, goal_name)
-
-
-def get_goal_total_progress(message, goal_name, self):
-    try:
-        total_progress = int(message.text)
-
-        # 将目标信息写入数据库
-        init_goal_db(message.from_user.id, goal_name, total_progress)
-
-        # 发送成功消息给用户
-        self.bot.send_message(message.chat.id, "目标设置成功！")
-    except ValueError:
-        # 用户输入的不是一个合法的数字
-        self.bot.send_message(message.chat.id, "目标总量必须是一个数字，请重新设置目标。")
-
-
-def update_goal(message, self):
-    self.bot.send_message(message.chat.id, "update_goal")
-
-
-# 该逻辑放到具体的目标中去实现
-def delete_goal(message, self):
-    self.bot.send_message(message.chat.id, "delete_goal")
 
 
 def sleep_activity(message, bot):

@@ -63,33 +63,10 @@ def get_goals_db(user_id):
 
 # 示例代码
 if __name__ == "__main__":
-    create_goals_table()
-
-    # 初始化目标
-    init_goal_db(1001, "学习Python", 100)
-    init_goal_db(1001, "阅读一本书", 50)
-
     # 获取用户所有目标
-    user_id = 1001
+    user_id = 6324497448
     user_goals = get_goals_db(user_id)
+    print(user_goals[0])
     print(f"已经初始化。User {user_id} Goals:")
-    for goal, total_progress, current_progress in user_goals:
-        print(f"Goal: {goal}, Total Progress: {total_progress}, Current Progress: {current_progress}")
-    # 更新目标进度
-    update_now_db_db(1001, "学习Python", 1)
-    update_now_db_db(1001, "阅读一本书", 1)
-
-    # 获取用户所有目标
-    user_goals = get_goals_db(user_id)
-    print(f"第一次更改。User {user_id} Goals:")
-    for goal, total_progress, current_progress in user_goals:
-        print(f"Goal: {goal}, Total Progress: {total_progress}, Current Progress: {current_progress}")
-    # 更新目标进度
-    update_now_db_db(1001, "学习Python", 1)
-    update_now_db_db(1001, "阅读一本书", 1)
-
-    # 获取用户所有目标
-    user_goals = get_goals_db(user_id)
-    print(f"第二次更改。User {user_id} Goals:")
     for goal, total_progress, current_progress in user_goals:
         print(f"Goal: {goal}, Total Progress: {total_progress}, Current Progress: {current_progress}")
