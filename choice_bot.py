@@ -6,7 +6,7 @@ import telebot
 from telebot import types
 from data import data, mindfulness
 from functions import RandomHandler, ChooseHandler, handle_text, short_term, long_term, get_options_keyboard, \
-    is_within_time_range, sleep_activity, get_track_keyboard, init_goal, update_goal, delete_goal
+    is_within_time_range, sleep_activity, get_track_keyboard, init_goal, update_goal, delete_goal, get_goal_list
 
 
 class ChoiceBot:
@@ -60,10 +60,11 @@ class ChoiceBot:
         @self.bot.message_handler(commands=['trackgoal'])
         def track(message):
             keyboard = get_track_keyboard(types)
-            self.bot.send_message(message.chat.id, "当前进行的目标：\nlist", reply_markup=keyboard)
+            get_goal_list(message, self, keyboard)
 
         @self.bot.callback_query_handler(func=lambda call: True)
         def callback_query(call):
+            print("call", call)
             if call.data == 'init':
                 init_goal(call.message, self)
             elif call.data == 'update':

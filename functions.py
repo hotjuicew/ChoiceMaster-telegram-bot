@@ -6,6 +6,8 @@ from data import replies, sleeps, activities_short_term, activities_long_term, g
 import datetime
 import pytz
 
+from database.db import get_goals_db, init_goal_db
+
 
 class RandomHandler:
     def __init__(self, bot):
@@ -175,8 +177,49 @@ def long_term(message, self):
     self.bot.send_message(message.chat.id, activity)
 
 
+def get_goal_list(message, self, keyboard):
+    user_goals = get_goals_db(message.from_user.id)
+    if not user_goals:
+        self.bot.send_message(message.chat.id, "你还没有制定目标哦~", reply_markup=keyboard)
+        return
+    else:
+        for goal, total_progress, current_progress in user_goals:
+            self.bot.send_message(message.chat.id,
+                                  f"目标< {goal}, 总目标数: {total_progress}, 已达目标数: {current_progress},完成百分比:{int(current_progress / total_progress * 100)}%",
+                                  reply_markup=keyboard)
+
+
 def init_goal(message, self):
-    self.bot.send_message(message.chat.id, "init_goal")
+    print("init_goal")
+    # 提示用户输入目标名称
+    self.bot.send_message(message.chat.id, "请输入目标名称，例如：坚持背单词60天")
+
+    # 等待用户回复，获取目标名称
+    self.bot.register_next_step_handler(message, get_goal_name, message.from_user.id)
+
+
+def get_goal_name(message, self):
+    goal_name = message.text
+
+    # 提示用户输入目标总量
+    self.bot.send_message(message.chat.id, "请输入目标总量，例如：60")
+
+    # 等待用户回复，获取目标总量
+    self.bot.register_next_step_handler(message, get_goal_total_progress, message.chat.id, goal_name)
+
+
+def get_goal_total_progress(message, goal_name, self):
+    try:
+        total_progress = int(message.text)
+
+        # 将目标信息写入数据库
+        init_goal_db(message.from_user.id, goal_name, total_progress)
+
+        # 发送成功消息给用户
+        self.bot.send_message(message.chat.id, "目标设置成功！")
+    except ValueError:
+        # 用户输入的不是一个合法的数字
+        self.bot.send_message(message.chat.id, "目标总量必须是一个数字，请重新设置目标。")
 
 
 def update_goal(message, self):
