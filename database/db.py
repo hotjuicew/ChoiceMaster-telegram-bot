@@ -32,7 +32,7 @@ def init_goal_db(user_id, goal_text, total_progress):
 
 
 # 设置此次完成数
-def update_now_db_db(user_id, goal_text, current_progress):
+def update_now_db(user_id, goal_text, current_progress):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute('UPDATE goals SET current_progress = current_progress+? WHERE user_id = ? AND goal_text = ?',
@@ -51,7 +51,7 @@ def update_already_db(user_id, goal_text, current_progress):
     conn.close()
 
 
-# 获取用户所有目标
+# 获取用户所有内容
 def get_goals_db(user_id):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
@@ -59,6 +59,25 @@ def get_goals_db(user_id):
     goals = cursor.fetchall()
     conn.close()
     return goals
+
+
+# 获取用户的所有目标
+def get_goals_text_db(user_id):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('SELECT goal_text FROM goals WHERE user_id = ?', (user_id,))
+    goals = cursor.fetchall()
+    conn.close()
+    return goals
+
+
+def check_goal_exists(user_id, goal_text):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('SELECT COUNT(*) FROM goals WHERE user_id = ? AND goal_text = ?', (user_id, goal_text))
+    count = cursor.fetchone()[0]
+    conn.close()
+    return count > 0
 
 
 # 示例代码

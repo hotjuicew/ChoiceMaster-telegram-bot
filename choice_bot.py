@@ -14,7 +14,6 @@ class ChoiceBot:
     def __init__(self, api_token):
         self.bot = telebot.TeleBot(api_token)
         self.bot.delete_webhook()
-        self.user_context = {}  # 用于存储用户的上下文数据
 
         @self.bot.message_handler(commands=['help', 'start'])
         def send_welcome(message):
@@ -57,6 +56,7 @@ class ChoiceBot:
 
         @self.bot.callback_query_handler(func=lambda call: True)
         def callback_query(call):
+            print("call.data", call.data)
             goal_handler = GoalHandler(self.bot)
             if call.data == 'short':
                 short_term(call.message, self)
@@ -65,12 +65,12 @@ class ChoiceBot:
             elif call.data == 'init':
                 goal_handler.init_goal(call.message)
             elif call.data == 'update':
-                goal_handler.update_goal(call.message)
+                goal_handler.handle_modify_goal(call.message)
             elif call.data == 'close':
                 self.bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
 
         @self.bot.message_handler(content_types=['text'])
-        def handle_message(message):
+        def handler_change_type(message):
             handle_text(message, self.bot)
 
     def start(self):
