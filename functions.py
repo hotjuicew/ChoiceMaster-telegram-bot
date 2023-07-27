@@ -8,7 +8,7 @@ from data import replies, sleeps, activities_short_term, activities_long_term, g
 import datetime
 import pytz
 
-from database.db import get_goals_db, init_goal_db, get_goals_text_db
+from database.db import get_goals_db, init_goal_db, get_goals_text_db, update_now_db, update_already_db
 
 
 class RandomHandler:
@@ -103,6 +103,8 @@ class GoalHandler:
     def __init__(self, bot):
         self.bot = bot
         self.options = {}
+        self.user_goal_choice = ''
+        self.user_choice = ''
 
     def get_format_list(self, message):
         user_goals = get_goals_db(message.from_user.id)
@@ -167,10 +169,15 @@ class GoalHandler:
         # 构建 Reply Keyboard
         reply_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
         for goal in user_goals:
-            reply_keyboard.add(KeyboardButton("·🌼" + goal[0]))
+            reply_keyboard.add(KeyboardButton(goal[0]))
 
         # 发送带有 Reply Keyboard 的消息给用户
         self.bot.send_message(message.chat.id, "请选择需要修改的目标：", reply_markup=reply_keyboard)
+        self.bot.register_next_step_handler(message, self.handle_goal_choice)
+
+    def handle_goal_choice(self, message):
+        self.user_goal_choice = message.text
+        self.update_goal_type(message)
 
     def update_goal_type(self, message):
         # 定义两个按钮
@@ -183,19 +190,24 @@ class GoalHandler:
 
     def handle_method_choice(self, message):
         # 获取用户选择
-        user_choice = message.text
+        self.user_choice = message.text
+        if self.user_choice == '设置总共完成数' or self.user_choice == '设置此次完成数':
+            self.update_ask(message)
 
-        if user_choice == '设置总共完成数':
-            self.update_already(message)
-        elif user_choice == '设置此次完成数':
-            self.update_now(message)
+    def update_ask(self, message):
+        self.bot.send_message(message.chat.id, f"请输入{self.user_choice}:")
+        self.bot.register_next_step_handler(message, self.update_answer)
 
-    # 其他选择的处理
-    def update_now(self, message):
-        print("now")
-
-    def update_already(self, message):
-        print("already")
+    def update_answer(self, message):
+        try:
+            if self.user_choice == '设置此次完成数':
+                update_now_db(message.from_user.id, self.user_goal_choice, message.text)
+            if self.user_choice == '设置总共完成数':
+                update_already_db(message.from_user.id, self.user_goal_choice, message.text)
+            self.bot.send_message(message.chat.id, f"更新成功！\n{self.user_goal_choice}的当前进度为：")
+            self.user_goal_choice = ''
+        except ValueError:
+            self.bot.send_message(message.chat.id, "请输入一个数字。")
 
     def delete_goal(self, message):
         self.bot.send_message(message.chat.id, "delete_goal")
@@ -211,14 +223,7 @@ def handle_text(message, bot):
     pattern_disappointed = re.compile(r"失望|沮丧|郁闷|可惜|😤|挫折|失意|无奈|无力|懊悔|泄气")
     goal_handler = GoalHandler(bot)
     if not message.text.startswith('/'):
-        if message.text.startswith('·'):
-            print("message.text.startswith('·')")
-            goal_handler.update_goal_type(message)
-        # elif message.text == '设置总共完成数':
-        #     bot.send_message(message.chat.id, '请输入总共完成数:')
-        #     goal_handler.handle_user_update_already_reply(message)
-        #     # todo
-        elif pattern_greet.search(message.text):
+        if pattern_greet.search(message.text):
             greeting = random.choice(greetings)
             bot.send_message(message.chat.id, greeting)
         elif is_within_time_range():
