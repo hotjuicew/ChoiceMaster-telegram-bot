@@ -62,7 +62,7 @@ class ChoiceBot:
                 short_term(call.message, self)
             elif call.data == 'long':
                 long_term(call.message, self)
-            elif call.data == 'user_choice':
+            elif call.data == 'init':
                 goal_handler.init_goal(call.message)
             elif call.data == 'update':
                 goal_handler.modify_goal(call.message, call.data)
