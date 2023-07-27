@@ -8,7 +8,7 @@ from data import replies, sleeps, activities_short_term, activities_long_term, g
 import datetime
 import pytz
 
-from database.db import get_goals_db, init_goal_db, get_goals_text_db, update_now_db, update_already_db, delete_goal_db
+from database.db import get_goals_db, init_goal_db, update_now_db, update_already_db, delete_goal_db
 
 
 class RandomHandler:
@@ -110,10 +110,18 @@ class GoalHandler:
 
     def get_format_list(self, message):
         user_goals = get_goals_db(message.from_user.id)
-        goal_list_text = ""
+
+        goal_list_text = "你的所有目标:\n"
+
         for goal, total_progress, current_progress in user_goals:
             completion_percentage = current_progress / total_progress * 100
-            goal_list_text += f"目标: {goal}, 总目标数: {total_progress}, 已达目标数: {current_progress}, 完成百分比: {completion_percentage:.2f}%\n"
+
+            # 构建进度条
+            progress_chars = int(completion_percentage / 10)
+            progress_bar = progress_chars * '█' + (10 - progress_chars) * '░'
+
+            goal_list_text += f"🌼{goal}, 目标总量: {total_progress}, 已达目标量: {current_progress}, 完成百分比: {completion_percentage:.2f}% [{progress_bar}]\n"
+
         return goal_list_text
 
     def get_goal_list(self, message, keyboard):
@@ -160,10 +168,12 @@ class GoalHandler:
             self.bot.send_message(message.chat.id, "目标总量必须是一个数字，请重新设置目标。")
 
     # 处理用户的修改或删除选择
-    def modify_goal(self, message, call_data):
+    def modify_goal(self, message, call_data, user_id):
         self.call_data = call_data
+
         # 获取用户的目标列表
-        user_goals = get_goals_text_db(message.from_user.id)
+        user_goals = get_goals_db(user_id)
+        print("user_goals", user_goals)
         # 如果用户没有设定目标，则回复消息提示用户
         if not user_goals:
             self.bot.send_message(message.chat.id, "你还没有设定目标哦！")
@@ -229,7 +239,7 @@ class GoalHandler:
 
     def delete_goal(self, message):
 
-        msg = self.bot.send_message(message.chat.id, f"将删除{self.user_goal_choice}确认删除吗?")
+        msg = self.bot.send_message(message.chat.id, f"将删除{self.user_goal_choice},确认删除吗?")
 
         self.bot.register_next_step_handler(msg, self.confirm_delete)
 

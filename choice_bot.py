@@ -56,6 +56,7 @@ class ChoiceBot:
 
         @self.bot.callback_query_handler(func=lambda call: True)
         def callback_query(call):
+            user_id = call.from_user.id
             print("call.data", call.data)
             goal_handler = GoalHandler(self.bot)
             if call.data == 'short':
@@ -65,9 +66,9 @@ class ChoiceBot:
             elif call.data == 'init':
                 goal_handler.init_goal(call.message)
             elif call.data == 'update':
-                goal_handler.modify_goal(call.message, call.data)
+                goal_handler.modify_goal(call.message, call.data, user_id)
             elif call.data == 'delete':
-                goal_handler.modify_goal(call.message, call.data)
+                goal_handler.modify_goal(call.message, call.data, user_id)
             elif call.data == 'close':
                 self.bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
 

@@ -61,16 +61,6 @@ def get_goals_db(user_id):
     return goals
 
 
-# 获取用户的所有目标
-def get_goals_text_db(user_id):
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute('SELECT goal_text FROM goals WHERE user_id = ?', (user_id,))
-    goals = cursor.fetchall()
-    conn.close()
-    return goals
-
-
 def check_goal_exists(user_id, goal_text):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
