@@ -80,12 +80,29 @@ def check_goal_exists(user_id, goal_text):
     return count > 0
 
 
+# 删除目标
+def delete_goal_db(user_id, goal_text):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM goals WHERE user_id = ? AND goal_text = ?', (user_id, goal_text))
+    conn.commit()
+    conn.close()
+
+
+# 删除一个用户的所有目标
+def delete_all_goals(user_id):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+
+    # 使用 user_id 删除所有目标
+    cursor.execute('DELETE FROM goals WHERE user_id = ?', (user_id,))
+
+    conn.commit()
+    conn.close()
+
+
 # 示例代码
 if __name__ == "__main__":
     # 获取用户所有目标
-    user_id = 6324497448
-    user_goals = get_goals_db(user_id)
-    print(user_goals[0])
-    print(f"已经初始化。User {user_id} Goals:")
-    for goal, total_progress, current_progress in user_goals:
-        print(f"Goal: {goal}, Total Progress: {total_progress}, Current Progress: {current_progress}")
+    user_id = 1001
+    delete_all_goals(user_id)

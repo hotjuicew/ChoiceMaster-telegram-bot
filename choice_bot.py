@@ -62,10 +62,12 @@ class ChoiceBot:
                 short_term(call.message, self)
             elif call.data == 'long':
                 long_term(call.message, self)
-            elif call.data == 'init':
+            elif call.data == 'user_choice':
                 goal_handler.init_goal(call.message)
             elif call.data == 'update':
-                goal_handler.handle_modify_goal(call.message)
+                goal_handler.modify_goal(call.message, call.data)
+            elif call.data == 'delete':
+                goal_handler.modify_goal(call.message, call.data)
             elif call.data == 'close':
                 self.bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
 

@@ -8,7 +8,7 @@ from data import replies, sleeps, activities_short_term, activities_long_term, g
 import datetime
 import pytz
 
-from database.db import get_goals_db, init_goal_db, get_goals_text_db, update_now_db, update_already_db
+from database.db import get_goals_db, init_goal_db, get_goals_text_db, update_now_db, update_already_db, delete_goal_db
 
 
 class RandomHandler:
@@ -105,6 +105,8 @@ class GoalHandler:
         self.options = {}
         self.user_goal_choice = ''
         self.user_choice = ''
+        # delete或update
+        self.call_data = ''
 
     def get_format_list(self, message):
         user_goals = get_goals_db(message.from_user.id)
@@ -157,10 +159,11 @@ class GoalHandler:
             # 用户输入的不是一个合法的数字
             self.bot.send_message(message.chat.id, "目标总量必须是一个数字，请重新设置目标。")
 
-    def handle_modify_goal(self, message):
+    # 处理用户的修改或删除选择
+    def modify_goal(self, message, call_data):
+        self.call_data = call_data
         # 获取用户的目标列表
         user_goals = get_goals_text_db(message.from_user.id)
-        print("user_goals", user_goals)
         # 如果用户没有设定目标，则回复消息提示用户
         if not user_goals:
             self.bot.send_message(message.chat.id, "你还没有设定目标哦！")
@@ -172,12 +175,20 @@ class GoalHandler:
             reply_keyboard.add(KeyboardButton(goal[0]))
 
         # 发送带有 Reply Keyboard 的消息给用户
-        self.bot.send_message(message.chat.id, "请选择需要修改的目标：", reply_markup=reply_keyboard)
+        call_data_zh = ''
+        if call_data == 'update':
+            call_data_zh = '修改'
+        elif call_data == 'delete':
+            call_data_zh = '删除'
+        self.bot.send_message(message.chat.id, f"请选择需要{call_data_zh}的目标：", reply_markup=reply_keyboard)
         self.bot.register_next_step_handler(message, self.handle_goal_choice)
 
     def handle_goal_choice(self, message):
         self.user_goal_choice = message.text
-        self.update_goal_type(message)
+        if self.call_data == 'update':
+            self.update_goal_type(message)
+        elif self.call_data == 'delete':
+            self.delete_goal(message)
 
     def update_goal_type(self, message):
         # 定义两个按钮
@@ -217,10 +228,21 @@ class GoalHandler:
                 message = self.bot.register_next_step_handler(msg, self.update_answer)
 
     def delete_goal(self, message):
-        self.bot.send_message(message.chat.id, "delete_goal")
+
+        msg = self.bot.send_message(message.chat.id, f"将删除{self.user_goal_choice}确认删除吗?")
+
+        self.bot.register_next_step_handler(msg, self.confirm_delete)
+
+    def confirm_delete(self, message):
+
+        if message.text.lower() in ['y', 'yes', '确认', '是的']:
+            # 用户确认,执行删除操作
+            delete_goal_db(message.from_user.id, self.user_goal_choice)
+            self.bot.send_message(message.chat.id, f"{self.user_goal_choice}删除完毕。")
+        else:
+            pass
 
 
-# todo
 def handle_text(message, bot):
     pattern_greet = re.compile(r"hello|hi|你好|hey|你是")
     pattern_sad = re.compile(r"😭|伤心|难受|难过|😮‍💨|哎|唉|难受|死|失望|悲伤|沮丧|痛苦|心碎|郁闷|💔|😤|心碎|痛苦|伤心|失恋|痛心|失望|悲伤")
