@@ -195,19 +195,26 @@ class GoalHandler:
             self.update_ask(message)
 
     def update_ask(self, message):
-        self.bot.send_message(message.chat.id, f"请输入{self.user_choice}:")
-        self.bot.register_next_step_handler(message, self.update_answer)
+        msg = self.bot.send_message(message.chat.id, f"请输入{self.user_choice}:")
+        self.bot.register_next_step_handler(msg, self.update_answer)
 
     def update_answer(self, message):
-        try:
-            if self.user_choice == '设置此次完成数':
-                update_now_db(message.from_user.id, self.user_goal_choice, message.text)
-            if self.user_choice == '设置总共完成数':
-                update_already_db(message.from_user.id, self.user_goal_choice, message.text)
-            self.bot.send_message(message.chat.id, f"更新成功！\n{self.user_goal_choice}的当前进度为：")
-            self.user_goal_choice = ''
-        except ValueError:
-            self.bot.send_message(message.chat.id, "请输入一个数字。")
+
+        while message.text:
+            try:
+                int(message.text)
+                if self.user_choice == '设置此次完成数':
+                    update_now_db(message.from_user.id, self.user_goal_choice, message.text)
+                elif self.user_choice == '设置总共完成数':
+                    update_already_db(message.from_user.id, self.user_goal_choice, message.text)
+
+                self.bot.send_message(message.chat.id, f"更新成功!\n{self.user_goal_choice}的当前进度为:")
+                self.user_goal_choice = ''
+                break
+
+            except ValueError:
+                msg = self.bot.send_message(message.chat.id, "请重新输入数字:")
+                message = self.bot.register_next_step_handler(msg, self.update_answer)
 
     def delete_goal(self, message):
         self.bot.send_message(message.chat.id, "delete_goal")
