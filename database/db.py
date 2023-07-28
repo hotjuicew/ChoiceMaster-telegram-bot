@@ -93,6 +93,4 @@ def delete_all_goals(user_id):
 
 # 示例代码
 if __name__ == "__main__":
-    # 获取用户所有目标
-    user_id = 1001
-    delete_all_goals(user_id)
+    create_goals_table()
