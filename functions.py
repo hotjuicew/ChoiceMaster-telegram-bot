@@ -117,8 +117,8 @@ class GoalHandler:
             completion_percentage = current_progress / total_progress * 100
 
             # 构建进度条
-            progress_chars = int(completion_percentage / 10)
-            progress_bar = progress_chars * '█' + (10 - progress_chars) * '░'
+            progress_chars = int(completion_percentage / 2)  # 使用Unicode字符，所以进度条每个字符表示2%
+            progress_bar = "█" * progress_chars + "░" * (50 - progress_chars)  # 总共50个字符长度
 
             goal_list_text += f"🌼{goal}, 目标总量: {total_progress}, 已达目标量: {current_progress}, 完成百分比: {completion_percentage:.2f}% [{progress_bar}]\n"
 
@@ -228,8 +228,8 @@ class GoalHandler:
                     update_now_db(message.from_user.id, self.user_goal_choice, message.text)
                 elif self.user_choice == '设置总共完成数':
                     update_already_db(message.from_user.id, self.user_goal_choice, message.text)
-
-                self.bot.send_message(message.chat.id, f"更新成功!\n{self.user_goal_choice}的当前进度为:")
+                goal_list_text = self.get_format_list(message)
+                self.bot.send_message(message.chat.id, f"更新成功!\n{goal_list_text}")
                 self.user_goal_choice = ''
                 break
 
