@@ -7,12 +7,6 @@ app = "choicemaster"
 primary_region = "hkg"
 
 [build]
-  image = "ghcr.io/hotjuicew/choicemaster-telegram-bot:latest"
+image = "ghcr.io/hotjuicew/choicemaster-telegram-bot:latest"
 
-[http_service]
-  internal_port = 8080
-  force_https = true
-  auto_stop_machines = true
-  auto_start_machines = true
-  min_machines_running = 0
-  processes = ["app"]
+
